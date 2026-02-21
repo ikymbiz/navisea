@@ -8,62 +8,127 @@
     :root {
       --primary-pink: #f8dbd5;
       --accent-gold: #d4a373;
+      --soft-blue: #b9d8eb;
       --text-main: #5a4a42;
       --bg-white: #ffffff;
       --card-shadow: 0 4px 15px rgba(0,0,0,0.05);
     }
     
     body { 
-      font-family: "Helvetica Neue", Arial, sans-serif; 
+      font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif; 
       margin: 0; 
       background: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%); 
       color: var(--text-main); 
       font-size: 14px;
+      line-height: 1.6;
     }
 
-    .header { background: var(--bg-white); padding: 20px 10px; text-align: center; border-bottom: 2px solid var(--primary-pink); }
-    .header h1 { margin: 0; font-size: 20px; color: var(--accent-gold); font-weight: 300; letter-spacing: 2px; }
+    /* ヘッダーデザイン */
+    .header { 
+      background: var(--bg-white); 
+      padding: 20px 10px; 
+      text-align: center; 
+      border-bottom: 2px solid var(--primary-pink);
+    }
+    .header h1 { 
+      margin: 0; 
+      font-size: 20px; 
+      letter-spacing: 2px; 
+      color: var(--accent-gold);
+      font-weight: 300;
+    }
+    .header p { margin: 5px 0 0; font-size: 10px; color: #aaa; }
 
     .container { max-width: 500px; margin: 0 auto; padding: 15px; }
-    .card { background: rgba(255, 255, 255, 0.9); border-radius: 20px; padding: 20px; margin-bottom: 15px; box-shadow: var(--card-shadow); }
-
-    .section-title { font-size: 12px; font-weight: bold; margin-bottom: 10px; display: block; color: var(--accent-gold); }
     
-    input, select, textarea { width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 12px; margin-bottom: 12px; box-sizing: border-box; }
-    
-    #updateStatus { font-size: 10px; color: #999; text-align: right; margin-bottom: 8px; }
+    /* カードデザイン */
+    .card { 
+      background: rgba(255, 255, 255, 0.9); 
+      border-radius: 20px; 
+      padding: 20px; 
+      margin-bottom: 15px; 
+      box-shadow: var(--card-shadow);
+      border: 1px solid rgba(255,255,255,0.3);
+    }
 
-    .selection-container { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 380px; overflow-y: auto; padding: 5px; }
-    .item-row { display: flex; flex-direction: column; padding: 10px; border-radius: 15px; border: 1.5px solid #f8f8f8; cursor: pointer; background: #fff; transition: 0.2s; }
-    .item-row.selected { background: var(--primary-pink) !important; border-color: #ffc4bc !important; }
-    .item-name { font-size: 10px; font-weight: bold; margin-bottom: 4px; line-height: 1.3; }
+    .section-title { font-size: 12px; font-weight: bold; margin-bottom: 10px; display: block; color: var(--accent-gold); text-transform: uppercase; letter-spacing: 1px; }
+    
+    input, select, textarea { 
+      width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 12px; 
+      font-size: 14px; margin-bottom: 12px; box-sizing: border-box; background: #fff;
+      color: var(--text-main);
+    }
+    input:focus { outline: none; border-color: var(--primary-pink); }
+    
+    #updateStatus { font-size: 10px; color: #999; text-align: right; margin-bottom: 8px; margin-right: 5px; }
+
+    /* アトラクション選択エリア */
+    .selection-container { 
+      display: grid; 
+      grid-template-columns: 1fr 1fr; 
+      gap: 8px; 
+      max-height: 380px; 
+      overflow-y: auto; 
+      padding: 5px;
+      border-radius: 12px;
+    }
+    .item-row { 
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 10px; border-radius: 15px; border: 1.5px solid #f8f8f8; 
+      cursor: pointer; background: #fff; transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .item-row.selected { 
+      background: var(--primary-pink) !important; 
+      border-color: #ffc4bc !important;
+      transform: translateY(-2px);
+    }
+    .item-name { font-size: 10px; font-weight: bold; margin-bottom: 4px; line-height: 1.3; color: #6e5a4e; }
     .item-wait { font-size: 10px; color: var(--accent-gold); font-weight: bold; }
     .selected .item-name, .selected .item-wait { color: #fff; }
 
-    .btn-primary { background: linear-gradient(to right, var(--accent-gold), #e6b980); color: white; width: 100%; padding: 16px; border: none; border-radius: 30px; font-weight: bold; cursor: pointer; font-size: 15px; }
-    
-    /* デバッグ用エリア */
-    .debug-panel { 
-      background: #333; color: #0f0; font-family: monospace; font-size: 10px; 
-      padding: 10px; border-radius: 10px; margin-top: 20px; max-height: 150px; overflow-y: auto;
-      opacity: 0.8;
+    .btn-primary { 
+      background: linear-gradient(to right, var(--accent-gold), #e6b980); 
+      color: white; width: 100%; padding: 16px; border: none; border-radius: 30px; 
+      font-weight: bold; cursor: pointer; font-size: 15px; margin-top: 10px;
+      box-shadow: 0 4px 15px rgba(212, 163, 115, 0.3);
     }
-
+    
+    /* 生成されたプランの表示 */
     .plan-line { border-left: 2px dashed var(--primary-pink); margin-left: 15px; padding-left: 20px; position: relative; margin-bottom: 15px; }
-    .plan-line::before { content: '⚓'; position: absolute; left: -10px; top: 0; font-size: 12px; background: #fff; }
-    .p-time { font-weight: bold; color: var(--accent-gold); font-size: 14px; }
-    .p-act { font-weight: bold; font-size: 14px; }
-    .p-det { font-size: 12px; color: #888; font-style: italic; }
+    .plan-line::before { 
+      content: '⚓'; position: absolute; left: -10px; top: 0; 
+      font-size: 12px; background: #fff; padding: 2px;
+    }
+    .p-time { font-weight: bold; color: var(--accent-gold); font-size: 14px; display: block; }
+    .p-act { font-weight: bold; font-size: 14px; color: var(--text-main); }
+    .p-det { font-size: 12px; color: #888; display: block; margin-top: 2px; font-style: italic; }
+    
+    .tip-box { 
+      background: #fdfaf5; border-radius: 15px; padding: 15px; margin-top: 15px;
+      border: 1px dashed var(--accent-gold);
+    }
+    .tip-list { font-size: 12px; padding-left: 20px; margin: 0; color: #6e5a4e; }
+
+    /* デバッグパネル（隠し味） */
+    .debug-panel { 
+      background: #333; color: #0f0; font-family: monospace; font-size: 9px; 
+      padding: 10px; border-radius: 10px; margin-top: 20px; max-height: 100px; overflow-y: auto;
+      opacity: 0.7;
+    }
   </style>
 </head>
 <body>
 
-<div class="header"><h1>NaviSea 2026</h1><p>〜素敵な冒険の旅を〜</p></div>
+<div class="header">
+  <h1>NaviSea 2026</h1>
+  <p>〜あなただけの特別な航路〜</p>
+</div>
 
 <div class="container">
   <div class="card">
     <span class="section-title">🗝 API Key</span>
-    <input id="key" type="password" placeholder="Gemini API Key" />
+    <input id="key" type="password" placeholder="Gemini API Keyを入力してね" />
     
     <span class="section-title">📅 Plan Setting</span>
     <div style="display: flex; gap: 8px;">
@@ -80,7 +145,7 @@
     <span class="section-title">🎀 Select Spots & Events</span>
     <div id="selectionArea" class="selection-container"></div>
     
-    <textarea id="notes" placeholder="予定やメモを書いてね" style="height: 60px; margin-top:12px;"></textarea>
+    <textarea id="notes" placeholder="「ランチは予約済み」「ダッフィーに会いたい」など自由にメモしてね" style="height: 60px; margin-top:12px;"></textarea>
     <button id="run" class="btn-primary">⛵ プランを作成する</button>
   </div>
 
@@ -91,17 +156,15 @@
 
   <div class="debug-panel">
     <div>[Debug Log]</div>
-    <div id="debugContent">Waiting for API...</div>
+    <div id="debugContent">System initializing...</div>
   </div>
 </div>
 
 <script>
   const MODEL_NAME = "gemini-2.0-flash";
-  // TDSのパークIDは275
   const PROXY_API = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://queue-times.com/parks/275/queue_times.json`)}`;
 
-  // キーワードマッチング用のマスタ
-  // queue-times.comは英語名で返ってくることが多いため、キーワードを含めておくと一致しやすくなります
+  // キーワードマッチング用のマスタリスト
   let masterData = [
     { name: "アナとエルサのフローズンジャーニー", key: "Frozen" },
     { name: "ラプンツェルのランタンフェスティバル", key: "Rapunzel" },
@@ -114,13 +177,24 @@
     { name: "インディ・ジョーンズ®・アドベンチャー", key: "Indiana Jones" },
     { name: "レイジングスピリッツ", key: "Raging Spirits" },
     { name: "ニモ＆フレンズ・シーライダー", key: "SeaRider" },
-    { name: "シンドバッド・ストーリーブック", key: "Sinbad" },
+    { name: "海底2万マイル", key: "20,000 Leagues" },
+    { name: "スカットルのスクーター", key: "Scuttle" },
+    { name: "フランダーのフィッシュコースター", key: "Flounder" },
+    { name: "シンドバッド・ストーリーブック", key: "Sindbad" },
     { name: "タートル・トーク", key: "Turtle Talk" },
     { name: "ヴェネツィアン・ゴンドラ", key: "Gondolas" },
-    { name: "海底2万マイル", key: "20,000 Leagues" },
     { name: "アクアトピア", key: "Aquatopia" },
+    { name: "ジャスミンのフライングカーペット", key: "Flying Carpets" },
     { name: "マジックランプシアター", key: "Magic Lamp" },
-    { name: "ジャスミンのフライングカーペット", key: "Flying Carpets" }
+    { name: "キャラバンカルーセル", key: "Caravan" },
+    { name: "ワールプール", key: "Whirlpool" },
+    { name: "ジャンピン・ジェリーフィッシュ", key: "Jellyfish" },
+    { name: "ブローフィッシュ・バルーンレース", key: "Blowfish" },
+    { name: "ビリーヴ！〜シー・オブ・ドリームス〜", key: "Believe" },
+    { name: "ビッグバンドビート(BBB)", key: "Big Band" },
+    { name: "ミッキー＆フレンズ・グリーティングトレイル", key: "Mickey" },
+    { name: "ヴィレッジ・グリーティングプレイス", key: "Duffy" },
+    { name: "サルードス・アミーゴス！", key: "Donald" }
   ].map(i => ({ ...i, wait: "--" })).sort((a,b) => a.name.localeCompare(b.name, "ja"));
 
   let selectedSet = new Set();
@@ -159,62 +233,82 @@
       const res = await fetch(PROXY_API);
       const wrapper = await res.json();
       
-      // デバッグ: APIから何かが返ってきたか確認
-      if (!wrapper.contents) {
-        debug.innerText = "Error: API response empty (contents missing)";
+      if (!wrapper || !wrapper.contents) {
+        debug.innerText = "Error: Proxy returned empty.";
         return;
       }
       
       const data = JSON.parse(wrapper.contents);
-      // queue-times.com の構造: data.lands[i].rides[j]
-      const liveRides = data.lands.flatMap(l => l.rides);
+      if (!data.lands) {
+        debug.innerText = "Error: Invalid API structure.";
+        return;
+      }
+
+      const liveRides = data.lands.flatMap(l => l.rides || []);
       
-      debug.innerHTML = `API Success! 取得施設数: ${liveRides.length}<br>`;
-      debug.innerHTML += `サンプル(1件目): ${liveRides[0].name} - ${liveRides[0].wait_time}分<br>---<br>`;
+      if (liveRides.length === 0) {
+        debug.innerText = "API Success, but 0 rides found. Park closed?";
+        status.innerText = "⚠️ 施設情報なし";
+        return;
+      }
+
+      debug.innerHTML = `✅ API Success! (${liveRides.length}件)<br>`;
 
       masterData.forEach(item => {
-        // 名前かキーワードでマッチング
-        const r = liveRides.find(l => 
-          l.name.toLowerCase().includes(item.name.toLowerCase()) || 
-          (item.key && l.name.toLowerCase().includes(item.key.toLowerCase()))
-        );
+        const r = liveRides.find(l => {
+          const apiName = l.name.toLowerCase();
+          return apiName.includes(item.name.toLowerCase()) || 
+                 (item.key && apiName.includes(item.key.toLowerCase()));
+        });
         
         if(r) {
           item.wait = r.is_open ? r.wait_time.toString() : "休止";
-          debug.innerHTML += `Match: ${item.name} -> ${r.name}<br>`;
+          debug.innerHTML += `Match: ${item.name}<br>`;
         }
       });
       
-      status.innerText = `✅ ${new Date().toLocaleTimeString()} 更新完了`;
+      status.innerText = `✅ ${new Date().toLocaleTimeString()} 更新`;
       renderList();
     } catch(e) { 
       status.innerText = "⚠️ 通信エラー";
-      debug.innerText = "Error details: " + e.message;
+      debug.innerText = "Error: " + e.message;
     }
   }
 
-  // ルート生成ロジック (前回のまま)
   document.getElementById("run").onclick = async () => {
     const key = document.getElementById("key").value;
-    if(!key) return alert("API Keyを入力してね🔑");
+    if(!key) return alert("API Keyを入れてね🔑");
     if(selectedSet.size === 0) return alert("行きたい場所をえらんでね🎀");
+    
     localStorage.setItem("navisea_key", key);
     const out = document.getElementById("out");
     document.getElementById("resultCard").style.display = "block";
-    out.innerHTML = "<div style='text-align:center; padding:20px;'>⚓️ 航路計算中...</div>";
-    const prompt = `あなたはディズニー好き20代女性。TDS回り方を提案。{"voyage_plan":[{"time":"HH:mm","activity":"場所","details":"助言"}],"tips":["短文"]} JSONのみ。`;
-    // ... (fetch部分は前回のロジック通り)
+    out.innerHTML = "<div style='text-align:center; padding:20px;'>⚓️ 最高の航海ルートを計算中...</div>";
+
+    const prompt = `あなたはディズニーが大好きな20代女性の案内人です。TDSの回り方を提案して。
+    【条件】${document.getElementById("startTime").value}開始 / ${Array.from(selectedSet).join(",")}希望 / メモ:${document.getElementById("notes").value}
+    【ルール】詳細は「〜してね」「〜がおすすめだよ」のように優しく可愛らしい敬語で15文字以内。
+    JSON形式のみ：{"voyage_plan":[{"time":"HH:mm","activity":"場所","details":"助言"}],"tips":["短いアドバイス1","アドバイス2"]}`;
+
     try {
       const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${key}`, {
         method: "POST", headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt + "条件: " + Array.from(selectedSet).join(",") }] }], generationConfig: { responseMimeType: "application/json" } })
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json" } })
       });
       const d = await res.json();
       const plan = JSON.parse(d.candidates[0].content.parts[0].text);
+      
       let html = `<div style="margin-top:10px;">`;
-      plan.voyage_plan.forEach(p => html += `<div class="plan-line"><span class="p-time">${p.time}</span><span class="p-act">${p.activity}</span><span class="p-det">${p.details}</span></div>`);
-      out.innerHTML = html + `</div>`;
-    } catch(e) { out.innerHTML = "エラー。APIキーや通信を確認してね。"; }
+      plan.voyage_plan.forEach(p => {
+        html += `<div class="plan-line"><span class="p-time">${p.time}</span><span class="p-act">${p.activity}</span><span class="p-det">${p.details}</span></div>`;
+      });
+      html += `</div><div class="tip-box"><span style="font-size:11px; font-weight:bold; color:var(--accent-gold);">🧸 ワンポイント・アドバイス</span><ul class="tip-list">`;
+      plan.tips.forEach(t => html += `<li>${t}</li>`);
+      html += `</ul></div>`;
+      out.innerHTML = html;
+    } catch(e) { 
+      out.innerHTML = "ごめんなさい、うまく計算できなかったみたい。もう一度試してみてね！"; 
+    }
   };
 </script>
 </body>
