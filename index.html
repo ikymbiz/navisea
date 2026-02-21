@@ -6,40 +6,47 @@
   <title>NaviSea | TDS Route Optimizer</title>
   <style>
     :root { 
-      --navy: #001f3f; --aqua: #0074D9; --accent: #FF851B; --light-bg: #f4f7f9;
+      --navy: #001f3f; --aqua: #0074D9; --accent: #FF851B; --light-bg: #f4f7f9; --white: #ffffff;
     }
-    body { font-family: "Helvetica Neue", Arial, sans-serif; margin: 0; background-color: var(--light-bg); color: var(--navy); }
+    body { font-family: "Helvetica Neue", Arial, sans-serif; margin: 0; background-color: var(--light-bg); color: var(--navy); line-height: 1.6; }
     .header { background: linear-gradient(135deg, var(--navy), var(--aqua)); color: white; padding: 20px 16px; text-align: center; }
     .container { max-width: 800px; margin: 0 auto; padding: 16px; }
-    .card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .card { background: var(--white); border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
     
     label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 8px; color: var(--aqua); }
     input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; margin-bottom: 12px; }
     
-    /* 選択エリア：最初から表示される */
-    .selection-container { border: 1px solid #ddd; border-radius: 12px; max-height: 500px; overflow-y: auto; background: #fff; }
-    .item-row { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; transition: 0.2s; }
-    .item-row:hover { background-color: #f8fbff; }
+    .selection-container { border: 1px solid #ddd; border-radius: 12px; max-height: 400px; overflow-y: auto; background: #fff; }
+    .item-row { display: flex; align-items: center; padding: 10px 12px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 14px; }
     .item-row.selected { background-color: #e6f3ff; border-left: 5px solid var(--aqua); }
-    
     .item-info { flex-grow: 1; margin-left: 10px; }
-    .item-name { font-size: 14px; font-weight: bold; display: block; }
-    .item-meta { font-size: 11px; color: #777; }
-    .wait-badge { font-weight: bold; color: var(--accent); font-size: 14px; }
-    
     .tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; color: white; margin-right: 5px; }
     .tag-ride { background: #0074D9; }
     .tag-show { background: #FF851B; }
 
-    .btn-primary { background: var(--navy); color: white; width: 100%; padding: 18px; border: none; border-radius: 12px; font-weight: bold; font-size: 18px; cursor: pointer; }
-    #out { background: #001529; color: #a5d8ff; padding: 20px; border-radius: 12px; white-space: pre-wrap; font-family: monospace; font-size: 13px; }
+    .btn-primary { background: var(--navy); color: white; width: 100%; padding: 18px; border: none; border-radius: 12px; font-weight: bold; font-size: 18px; cursor: pointer; transition: 0.3s; }
+    .btn-primary:hover { background: var(--aqua); }
+
+    /* 出力エリアのスタイリング */
+    #out { min-height: 100px; }
+    .plan-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+    .plan-table th { background: #f0f4f8; padding: 10px; text-align: left; border-bottom: 2px solid var(--aqua); }
+    .plan-table td { padding: 12px 10px; border-bottom: 1px solid #eee; vertical-align: top; }
+    .time-col { font-weight: bold; color: var(--aqua); white-space: nowrap; width: 70px; }
+    .activity-col { font-weight: bold; width: 180px; }
+    .wait-summary { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin: 15px 0; }
+    .wait-item { background: #f9f9f9; padding: 8px; border-radius: 8px; font-size: 12px; border: 1px solid #eee; }
+    .tip-box { background: #fff8f0; border-left: 4px solid var(--accent); padding: 15px; border-radius: 0 8px 8px 0; margin-top: 15px; }
+    .tip-box h4 { margin: 0 0 10px 0; color: var(--accent); font-size: 15px; }
+    .tip-box ul { margin: 0; padding-left: 20px; font-size: 13px; }
+    .loading { text-align: center; color: var(--aqua); font-weight: bold; padding: 20px; }
   </style>
 </head>
 <body>
 
 <div class="header">
   <h1>NaviSea 2026</h1>
-  <p>TDS Route Optimizer</p>
+  <p>TDS Smart Voyage Guide</p>
 </div>
 
 <div class="container">
@@ -57,19 +64,16 @@
   </div>
 
   <div class="card">
-    <label>行きたい場所を選択（主要施設は最初から選択済）</label>
-    <div id="selectionArea" class="selection-container">
-      </div>
-    
+    <label>行きたい場所を選択</label>
+    <div id="selectionArea" class="selection-container"></div>
     <label style="margin-top: 15px;">特記事項</label>
-    <textarea id="notes" placeholder="例：レストラン予約、DPA利用予定など"></textarea>
-    
+    <textarea id="notes" placeholder="例：マゼランズ16:30予約、BBB当選、ギョウザドッグ食べたい"></textarea>
     <button id="run" class="btn-primary">⛵ 最適な航路を計算する</button>
   </div>
 
-  <div class="card">
-    <label>Voyage Plan Result</label>
-    <pre id="out">ここにプランが表示されます</pre>
+  <div id="resultCard" class="card" style="display:none;">
+    <label>Optimized Voyage Plan</label>
+    <div id="out"></div>
   </div>
 </div>
 
@@ -77,111 +81,117 @@
   const MODEL_NAME = "gemini-2.5-flash";
   const PROXY_API = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://queue-times.com/parks/275/queue_times.json`)}`;
 
-  // --- デフォルトでサイトに表示されるアトラクション・ショーのリスト ---
-  // isDefault: true のものは最初からチェックが入ります
   let masterData = [
-    { name: "アナとエルサのフローズンジャーニー", land: "ファンタジースプリングス", type: "ride", wait: "--", isDefault: true },
-    { name: "ラプンツェルのランタンフェスティバル", land: "ファンタジースプリングス", type: "ride", wait: "--", isDefault: true },
-    { name: "ピーターパンのネバーランドアドベンチャー", land: "ファンタジースプリングス", type: "ride", wait: "--", isDefault: true },
-    { name: "ソアリン：ファンタスティック・フライト", land: "メディテレーニアンハーバー", type: "ride", wait: "--", isDefault: true },
-    { name: "トイ・ストーリー・マニア！", land: "アメリカンウォーターフロント", type: "ride", wait: "--", isDefault: true },
-    { name: "タワー・オブ・テラー", land: "アメリカンウォーターフロント", type: "ride", wait: "--", isDefault: true },
-    { name: "センター・オブ・ジ・アース", land: "ミステリアスアイランド", type: "ride", wait: "--", isDefault: true },
-    { name: "インディ・ジョーンズ：クリスタルスカルの魔宮", land: "ロストリバーデルタ", type: "ride", wait: "--", isDefault: true },
-    { name: "レイジングスピリッツ", land: "ロストリバーデルタ", type: "ride", wait: "--", isDefault: true },
-    { name: "海底2万マイル", land: "ミステリアスアイランド", type: "ride", wait: "--", isDefault: false },
-    { name: "ニモ＆フレンズ・シーライダー", land: "ポートディスカバリー", type: "ride", wait: "--", isDefault: false },
-    { name: "アクアトピア", land: "ポートディスカバリー", type: "ride", wait: "--", isDefault: false },
-    { name: "マジックランプシアター", land: "アラビアンコースト", type: "show", wait: "--", isDefault: false },
-    { name: "シンドバッド・ストーリーブック・ヴォヤッジ", land: "アラビアンコースト", type: "ride", wait: "--", isDefault: false },
-    { name: "ビリーヴ！〜シー・オブ・ドリームス〜", land: "メディテレーニアンハーバー", type: "show", wait: "--", isDefault: true },
-    { name: "ビッグバンドビート", land: "アメリカンウォーターフロント", type: "show", wait: "--", isDefault: true },
-    { name: "ジャンボリミッキー！レッツ・ダンス！", land: "アメリカンウォーターフロント", type: "show", wait: "--", isDefault: false },
-    { name: "タートル・トーク", land: "アメリカンウォーターフロント", type: "show", wait: "--", isDefault: false }
+    { name: "アナとエルサのフローズンジャーニー", land: "FS", type: "ride", wait: "--", isDefault: true },
+    { name: "ラプンツェルのランタンフェスティバル", land: "FS", type: "ride", wait: "--", isDefault: true },
+    { name: "ピーターパンのネバーランドアドベンチャー", land: "FS", type: "ride", wait: "--", isDefault: true },
+    { name: "ソアリン：ファンタスティック・フライト", land: "MH", type: "ride", wait: "--", isDefault: true },
+    { name: "トイ・ストーリー・マニア！", land: "AW", type: "ride", wait: "--", isDefault: true },
+    { name: "タワー・オブ・テラー", land: "AW", type: "ride", wait: "--", isDefault: true },
+    { name: "センター・オブ・ジ・アース", land: "MI", type: "ride", wait: "--", isDefault: true },
+    { name: "インディ・ジョーンズ：クリスタルスカルの魔宮", land: "RD", type: "ride", wait: "--", isDefault: true },
+    { name: "ビリーヴ！〜シー・オブ・ドリームス〜", land: "MH", type: "show", wait: "--", isDefault: true },
+    { name: "ビッグバンドビート", land: "AW", type: "show", wait: "--", isDefault: true },
+    { name: "シンドバッド", land: "AC", type: "ride", wait: "--", isDefault: false }
   ].sort((a, b) => a.name.localeCompare(b.name, "ja"));
 
   let selectedSet = new Set();
 
-  // 1. ページ読み込み時に即座にリストを表示
   window.onload = () => {
     document.getElementById("startTime").value = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
     document.getElementById("key").value = localStorage.getItem("navisea_key") || "";
-    
-    // デフォルトの選択状態を設定
     masterData.forEach(item => { if(item.isDefault) selectedSet.add(item.name); });
-    
-    renderList();      // 描画
-    updateWaitTimes(); // 後から待ち時間を取得して更新
+    renderList();
+    updateWaitTimes();
   };
 
   function renderList() {
     const area = document.getElementById("selectionArea");
     area.innerHTML = "";
-    masterData.forEach((item, index) => {
+    masterData.forEach((item) => {
       const isSelected = selectedSet.has(item.name);
       const row = document.createElement("div");
       row.className = `item-row ${isSelected ? 'selected' : ''}`;
-      const tagClass = item.type === 'ride' ? 'tag-ride' : 'tag-show';
-      
       row.innerHTML = `
         <input type="checkbox" ${isSelected ? 'checked' : ''} style="margin-right:10px;">
         <div class="item-info">
-          <div>
-            <span class="tag ${tagClass}">${item.type === 'ride' ? 'RIDE' : 'SHOW'}</span>
-            <span class="item-name">${item.name}</span>
-          </div>
-          <div class="item-meta">${item.land}</div>
+          <span class="tag ${item.type === 'ride' ? 'tag-ride' : 'tag-show'}">${item.type.toUpperCase()}</span>
+          <strong>${item.name}</strong>
         </div>
-        <div style="text-align:right; min-width:60px;">
-          <span class="wait-badge">${item.wait}</span>${item.wait !== "--" && isFinite(item.wait) ? "分" : ""}
-        </div>
+        <div style="font-size:12px; color:var(--accent); font-weight:bold;">${item.wait}${isFinite(item.wait) ? '分' : ''}</div>
       `;
-      
       row.onclick = (e) => {
-        if(e.target.tagName !== 'INPUT') {
-          const cb = row.querySelector('input');
-          cb.checked = !cb.checked;
-        }
-        const checked = row.querySelector('input').checked;
-        if (checked) { selectedSet.add(item.name); row.classList.add('selected'); }
-        else { selectedSet.delete(item.name); row.classList.remove('selected'); }
+        const cb = row.querySelector('input');
+        if(e.target !== cb) cb.checked = !cb.checked;
+        if(cb.checked) selectedSet.add(item.name); else selectedSet.delete(item.name);
+        renderList();
       };
       area.appendChild(row);
     });
   }
 
-  // 2. バックグラウンドで待ち時間を取得して、リストに反映する
   async function updateWaitTimes() {
     try {
       const res = await fetch(PROXY_API);
       const wrapper = await res.json();
       const data = JSON.parse(wrapper.contents);
       const liveRides = data.lands.flatMap(l => l.rides);
-
       masterData.forEach(item => {
         const live = liveRides.find(r => item.name.includes(r.name) || r.name.includes(item.name));
         if (live) item.wait = live.is_open ? live.wait_time : "休止";
       });
-      renderList(); // 待ち時間を反映して再描画
-    } catch (e) { console.warn("Live data fetch failed."); }
+      renderList();
+    } catch (e) { console.warn("Live update failed"); }
   }
 
-  // 3. プラン計算
+  // --- 表示用レンダラー関数 ---
+  function renderPlan(data) {
+    let html = `<h3>⚓️ 航海スケジュール</h3>`;
+    html += `<table class="plan-table">
+              <thead><tr><th>時刻</th><th>アクティビティ</th><th>詳細・助言</th></tr></thead>
+              <tbody>`;
+    data.voyage_plan.forEach(step => {
+      html += `<tr>
+                <td class="time-col">${step.time}</td>
+                <td class="activity-col">${step.activity}</td>
+                <td>${step.details}</td>
+               </tr>`;
+    });
+    html += `</tbody></table>`;
+
+    html += `<h3 style="margin-top:25px;">📊 施設状況まとめ</h3><div class="wait-summary">`;
+    masterData.filter(i => selectedSet.has(i.name)).forEach(i => {
+      html += `<div class="wait-item"><strong>${i.name}</strong><br><span style="color:var(--accent)">${i.wait}${isFinite(i.wait) ? '分待ち' : ''}</span></div>`;
+    });
+    html += `</div>`;
+
+    html += `<div class="tip-box"><h4>💡 ワンポイント・アドバイス</h4><ul>`;
+    data.tips.forEach(tip => { html += `<li>${tip}</li>`; });
+    html += `</ul></div>`;
+
+    return html;
+  }
+
   document.getElementById("run").onclick = async () => {
     const key = document.getElementById("key").value;
+    const out = document.getElementById("out");
+    const resultCard = document.getElementById("resultCard");
+    
     if (!key) return alert("API Keyを入力してください。");
     localStorage.setItem("navisea_key", key);
 
-    document.getElementById("out").textContent = "AIが航海計画を練っています...";
+    resultCard.style.display = "block";
+    out.innerHTML = `<div class="loading">🚢 航路を計算中... 嵐を回避しています...</div>`;
+    window.scrollTo({ top: resultCard.offsetTop, behavior: 'smooth' });
 
-    const prompt = `あなたは東京ディズニーシーの達人です。
-    【条件】開始時刻: ${document.getElementById("startTime").value} / 方針: ${document.getElementById("persona").value}
-    【希望施設】${Array.from(selectedSet).join(", ")}
-    【リアルタイム待ち時間】${JSON.stringify(masterData.filter(i => selectedSet.has(i.name)))}
-    【特記事項】${document.getElementById("notes").value}
+    const prompt = `あなたはTDSの達人。以下の条件で最高の1日をJSONで提案して。
+    【条件】開始: ${document.getElementById("startTime").value} / 方針: ${document.getElementById("persona").value}
+    【希望】${Array.from(selectedSet).join(", ")}
+    【データ】${JSON.stringify(masterData.filter(i => selectedSet.has(i.name)))}
+    【備考】${document.getElementById("notes").value}
     
-    移動距離と混雑を考慮した最高のプランをJSONで返して。
-    {"voyage_plan": [{"time": "...", "activity": "...", "details": "..."}], "tips": []}`;
+    必ずこのJSON構造のみで返して：
+    {"voyage_plan": [{"time": "時刻", "activity": "場所", "details": "助言"}], "tips": ["アドバイス1", "アドバイス2"]}`;
 
     try {
       const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${key}`, {
@@ -189,10 +199,12 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json" } })
       });
-      const data = await res.json();
-      document.getElementById("out").textContent = JSON.stringify(JSON.parse(data.candidates[0].content.parts[0].text), null, 2);
+      const resJson = await res.json();
+      const planData = JSON.parse(resJson.candidates[0].content.parts[0].text);
+      
+      out.innerHTML = renderPlan(planData);
     } catch (e) {
-      document.getElementById("out").textContent = "エラー: " + e.message;
+      out.innerHTML = `<div style="color:red; padding:20px;">計算に失敗しました。APIキーや通信環境を確認してください。</div>`;
     }
   };
 </script>
