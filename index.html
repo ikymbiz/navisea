@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>NaviSea | Full</title>
+  <title>NaviSea | Final</title>
   <style>
     :root { --navy: #001f3f; --aqua: #0074D9; --accent: #FF851B; --bg: #f0f2f5; }
     body { font-family: sans-serif; margin: 0; background: var(--bg); color: var(--navy); font-size: 14px; }
@@ -14,14 +14,15 @@
     
     input, select, textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-bottom: 8px; box-sizing: border-box; }
     
-    /* 全表示に対応した2列リスト */
-    .selection-container { border: 1px solid #eee; border-radius: 8px; max-height: 250px; overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; background: #fafafa; }
-    .item-row { display: flex; align-items: center; padding: 6px; border-radius: 4px; border: 1px solid #eee; cursor: pointer; font-size: 10px; background: #fff; line-height: 1.2; }
-    .item-row.selected { background: #e6f3ff; border-color: var(--aqua); }
+    /* 選択エリアの強化 */
+    .selection-container { border: 1px solid #eee; border-radius: 8px; max-height: 300px; overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 6px; background: #fafafa; }
+    .item-row { display: flex; align-items: center; padding: 8px; border-radius: 6px; border: 1px solid #ddd; cursor: pointer; font-size: 10px; background: #fff; line-height: 1.2; user-select: none; }
+    .item-row.selected { background: #0074D9 !important; color: white !important; border-color: #001f3f; }
+    .item-row.selected span { color: white !important; }
     
     .btn-primary { background: var(--navy); color: white; width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
     
-    /* 出力エリア */
+    /* 結果エリア */
     .plan-line { border-left: 2px solid var(--aqua); margin-left: 10px; padding-left: 10px; position: relative; margin-bottom: 6px; }
     .plan-line::before { content: ''; position: absolute; left: -5px; top: 4px; width: 8px; height: 8px; background: var(--aqua); border-radius: 50%; }
     .p-time { font-weight: bold; color: var(--aqua); margin-right: 8px; font-size: 13px; }
@@ -45,13 +46,15 @@
       <select id="persona" style="flex:1;">
         <option value="balanced">効率</option>
         <option value="thrill">絶叫</option>
-        <option value="chill">のんびり</option>
+        <option value="chill">散策</option>
       </select>
     </div>
+    
+    <label style="font-size:10px; color:#888;">タップして選択（デフォルト未選択）</label>
     <div id="selectionArea" class="selection-container">
-      <div style="grid-column: 1/3; text-align: center; padding: 20px; color: #888;">データを読み込み中...</div>
-    </div>
-    <textarea id="notes" placeholder="予定（15時BBB、マゼランズ予約など）" style="height: 40px; margin-top:8px;"></textarea>
+      </div>
+    
+    <textarea id="notes" placeholder="予定・メモ（例：16時マゼランズ予約）" style="height: 40px; margin-top:8px;"></textarea>
     <button id="run" class="btn-primary">⛵ ルート生成</button>
   </div>
 
@@ -64,34 +67,28 @@
   const MODEL_NAME = "gemini-2.5-flash";
   const PROXY_API = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://queue-times.com/parks/275/queue_times.json`)}`;
 
-  let masterData = []; // APIから取得した全データをここに格納
-  let selectedSet = new Set(); // 最初は何も選択しない
+  // --- 主要な全リストをあらかじめ定義（APIが死んでも選択可能にする） ---
+  let masterData = [
+    { name: "アナとエルサ", wait: "--" }, { name: "ラプンツェル", wait: "--" },
+    { name: "ピーターパン", wait: "--" }, { name: "ビリーヴ！", wait: "--" },
+    { name: "ソアリン", wait: "--" }, { name: "トイマニ", wait: "--" },
+    { name: "タワテラ", wait: "--" }, { name: "センター", wait: "--" },
+    { name: "インディ", wait: "--" }, { name: "レイジング", wait: "--" },
+    { name: "マジックランプ", wait: "--" }, { name: "シンドバッド", wait: "--" },
+    { name: "BBB", wait: "--" }, { name: "ニモ", wait: "--" },
+    { name: "海底2万マイル", wait: "--" }, { name: "ジャンボリミッキー", wait: "--" },
+    { name: "アクアトピア", wait: "--" }, { name: "タートル・トーク", wait: "--" },
+    { name: "フライングカーペット", wait: "--" }, { name: "スカットルのスクーター", wait: "--" }
+  ].sort((a,b) => a.name.localeCompare(b.name, "ja"));
+
+  let selectedSet = new Set();
 
   window.onload = () => {
     document.getElementById("startTime").value = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
     document.getElementById("key").value = localStorage.getItem("navisea_key") || "";
-    updateData(); // 起動時に全データを取得
+    renderList(); // まず固定リストを表示
+    updateWaitTimes(); // 裏で待ち時間を取得して更新
   };
-
-  // 全アトラクション・ショーをAPIから取得してリスト化
-  async function updateData() {
-    try {
-      const res = await fetch(PROXY_API);
-      const wrapper = await res.json();
-      const data = JSON.parse(wrapper.contents);
-      
-      // 全エリアの施設を統合
-      masterData = data.lands.flatMap(l => l.rides.map(r => ({
-        name: r.name,
-        wait: r.is_open ? r.wait_time : "休",
-        land: l.name
-      }))).sort((a,b) => a.name.localeCompare(b.name, "ja"));
-
-      renderList();
-    } catch(e) {
-      document.getElementById("selectionArea").innerHTML = "データ取得失敗";
-    }
-  }
 
   function renderList() {
     const area = document.getElementById("selectionArea");
@@ -100,32 +97,63 @@
       const isSelected = selectedSet.has(item.name);
       const row = document.createElement("div");
       row.className = `item-row ${isSelected ? 'selected' : ''}`;
-      row.innerHTML = `<span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.name}</span><span style="color:var(--accent); margin-left:4px;">${item.wait}</span>`;
-      row.onclick = () => {
-        if(selectedSet.has(item.name)) selectedSet.delete(item.name);
-        else selectedSet.add(item.name);
-        renderList();
-      };
+      row.innerHTML = `<span style="flex:1">${item.name}</span><span style="color:var(--accent); margin-left:4px;">${item.wait}</span>`;
+      
+      // クリックイベントの確実な登録
+      row.addEventListener('click', () => {
+        if(selectedSet.has(item.name)) {
+          selectedSet.delete(item.name);
+          row.classList.remove('selected');
+        } else {
+          selectedSet.add(item.name);
+          row.classList.add('selected');
+        }
+      });
       area.appendChild(row);
     });
   }
 
+  async function updateWaitTimes() {
+    try {
+      const res = await fetch(PROXY_API);
+      const wrapper = await res.json();
+      const data = JSON.parse(wrapper.contents);
+      const live = data.lands.flatMap(l => l.rides);
+      
+      // 1. 既存のリストに待ち時間を反映
+      masterData.forEach(item => {
+        const r = live.find(l => item.name.includes(l.name) || l.name.includes(item.name));
+        if(r) item.wait = r.is_open ? r.wait_time : "休";
+      });
+      
+      // 2. リストにない施設を追加（完全同期）
+      live.forEach(l => {
+        if(!masterData.some(m => m.name.includes(l.name) || l.name.includes(m.name))) {
+          masterData.push({ name: l.name, wait: l.is_open ? l.wait_time : "休" });
+        }
+      });
+      
+      masterData.sort((a,b) => a.name.localeCompare(b.name, "ja"));
+      renderList();
+    } catch(e) { console.warn("Live update failed, using static list."); }
+  }
+
   document.getElementById("run").onclick = async () => {
     const key = document.getElementById("key").value;
-    if(!key) return alert("Keyを入れてください");
-    if(selectedSet.size === 0) return alert("場所を選択してください");
+    if(!key) return alert("API Keyを入力してください");
+    if(selectedSet.size === 0) return alert("場所を1つ以上選択してください");
     
     localStorage.setItem("navisea_key", key);
     const resultCard = document.getElementById("resultCard");
     const out = document.getElementById("out");
 
     resultCard.style.display = "block";
-    out.innerHTML = "<div style='text-align:center;'>⚓️ 計算中...</div>";
+    out.innerHTML = "<div style='text-align:center;'>⚓️ 航路計算中...</div>";
 
-    const prompt = `TDSプラン。15文字以内の短い詳細。
+    const prompt = `TDSプラン。
     【条件】${document.getElementById("startTime").value}開始 / ${Array.from(selectedSet).join(",")}希望 / ${document.getElementById("notes").value}
-    【全待ち時間】${JSON.stringify(masterData.filter(i => selectedSet.has(i.name)))}
-    【返記】JSON: {"voyage_plan":[{"time":"HH:mm","activity":"場所","details":"15字以内助言"}],"tips":["短文1","短文2"]}`;
+    【ルール】助言は15文字以内。
+    JSONのみ：{"voyage_plan":[{"time":"HH:mm","activity":"場所","details":"助言"}],"tips":["短文1","短文2"]}`;
 
     try {
       const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${key}`, {
