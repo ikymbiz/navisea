@@ -7,207 +7,162 @@
   <style>
     :root { 
       --navy: #001f3f; --aqua: #0074D9; --silver: #DDDDDD; --white: #FFFFFF;
-      --accent: #FF851B; /* コンパスの針のようなアクセントオレンジ */
+      --accent: #FF851B; --glass: rgba(255, 255, 255, 0.9);
     }
-    body { font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif; margin: 0; background-color: #f4f7f9; color: var(--navy); }
-    .header { background: linear-gradient(135deg, var(--navy), var(--aqua)); color: white; padding: 24px 16px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-    .header h1 { margin: 0; font-size: 28px; letter-spacing: 2px; font-weight: 800; }
-    .header p { margin: 8px 0 0; font-size: 13px; opacity: 0.9; }
+    body { font-family: "Helvetica Neue", Arial, sans-serif; margin: 0; background-color: #eef2f7; color: var(--navy); }
+    .header { background: linear-gradient(135deg, var(--navy), var(--aqua)); color: white; padding: 30px 16px; text-align: center; }
+    .header h1 { margin: 0; font-size: 28px; letter-spacing: 2px; }
     
     .container { max-width: 800px; margin: 0 auto; padding: 16px; }
-    .card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(0,31,63,0.08); border: 1px solid rgba(0,116,217,0.1); }
+    .card { background: var(--glass); border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     
-    label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 8px; color: var(--aqua); text-transform: uppercase; }
-    input, select, textarea { width: 100%; padding: 14px; border: 1.5px solid #eee; border-radius: 12px; box-sizing: border-box; font-size: 15px; transition: all 0.3s; }
-    input:focus, textarea:focus { border-color: var(--aqua); outline: none; box-shadow: 0 0 0 3px rgba(0,116,217,0.1); }
+    label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 8px; color: var(--navy); }
+    input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; margin-bottom: 12px; }
     
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-    @media (max-width: 500px) { .grid { grid-template-columns: 1fr; } }
-    
-    button { cursor: pointer; border: none; border-radius: 12px; padding: 16px; font-weight: bold; transition: 0.3s; font-size: 16px; }
-    .btn-primary { background: var(--navy); color: white; width: 100%; box-shadow: 0 4px 15px rgba(0,31,63,0.3); }
-    .btn-primary:hover { background: var(--aqua); transform: translateY(-2px); }
-    .btn-secondary { background: #eef2f7; color: var(--navy); font-size: 13px; }
+    /* 選択エリアのスタイル */
+    .selection-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; max-height: 300px; overflow-y: auto; padding: 10px; border: 1px solid #ddd; border-radius: 8px; background: #fff; }
+    .item-card { display: flex; align-items: center; gap: 8px; padding: 8px; border: 1px solid #eee; border-radius: 6px; cursor: pointer; font-size: 13px; transition: 0.2s; }
+    .item-card:hover { background: #f0f7ff; }
+    .item-card input { width: auto; margin: 0; }
+    .item-card.selected { background: #e0f0ff; border-color: var(--aqua); }
 
-    .status-area { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 12px; }
-    .badge { padding: 4px 12px; border-radius: 99px; background: #e0f0ff; color: var(--aqua); font-weight: bold; }
+    .btn-primary { background: var(--navy); color: white; width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: bold; font-size: 18px; cursor: pointer; }
+    .btn-primary:hover { background: var(--aqua); }
     
-    #out { background: #001529; color: #a5d8ff; padding: 24px; border-radius: 16px; white-space: pre-wrap; font-family: 'Courier New', Courier, monospace; font-size: 14px; line-height: 1.6; overflow-x: auto; border-left: 4px solid var(--accent); }
-    .loading { animation: pulse 1.5s infinite; }
-    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-    .error { color: #ff4136; background: #fff1f0; padding: 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid #ffa39e; display: none; }
+    #out { background: #001529; color: #a5d8ff; padding: 20px; border-radius: 12px; white-space: pre-wrap; font-family: monospace; font-size: 14px; }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; margin-right: 4px; vertical-align: middle; }
+    .tag-ride { background: #0074D9; color: white; }
+    .tag-show { background: #FF851B; color: white; }
   </style>
 </head>
 <body>
 
 <div class="header">
   <h1>NaviSea</h1>
-  <p>TDS Smart Voyage Guide | Powered by Gemini 2.5 Flash</p>
+  <p>TDS Smart Voyage Guide</p>
 </div>
 
 <div class="container">
-  <div id="error" class="error"></div>
-
   <div class="card">
-    <div class="grid">
-      <div>
-        <label>Gemini API Key</label>
-        <input id="key" type="password" placeholder="Keyを入力してください" />
-      </div>
-      <div>
-        <label>入園・開始時刻</label>
-        <input id="startTime" type="datetime-local" />
-      </div>
-    </div>
-    <div class="grid" style="align-items: center;">
-      <div>
-        <label>航海プラン</label>
-        <select id="persona">
-          <option value="balanced" selected>効率重視（バランス）</option>
-          <option value="thrill">絶叫マシン・コンプリート</option>
-          <option value="chill">ゆったり散策・風景重視</option>
-          <option value="gourmet">食の探求（食べ歩き）</option>
-        </select>
-      </div>
-      <button id="saveKey" class="btn-secondary">鍵をブラウザに保管</button>
+    <label>Gemini API Key</label>
+    <input id="key" type="password" placeholder="AIの鍵を入力してください" />
+    <div style="display: flex; gap: 10px;">
+      <input id="startTime" type="datetime-local" />
+      <select id="persona">
+        <option value="balanced">効率重視</option>
+        <option value="thrill">絶叫コンプ</option>
+        <option value="chill">のんびり散策</option>
+      </select>
     </div>
   </div>
 
   <div class="card">
-    <div class="status-area">
-      <button id="fetch" class="btn-secondary" style="padding: 8px 16px;">📡 データ更新</button>
-      <span id="waitStatus" class="badge">待ち時間：未取得</span>
+    <label>体験したいアトラクション & ショー（複数選択可）</label>
+    <div id="selectionArea" class="selection-grid">
+      <div style="padding: 20px; color: #888;">データを読み込み中...</div>
     </div>
     
-    <label>狙いたいアトラクション</label>
-    <select id="rideSelect" multiple style="height: 180px; margin-bottom: 16px;"></select>
-
-    <label>自由な航海日誌（ショー、食事予約、DPA利用、NG事項など）</label>
-    <textarea id="notes" placeholder="例：14:00にビッグバンドビート当選、ソアリンはDPA利用、ギョウザドッグは絶対食べる、など"></textarea>
+    <label style="margin-top: 15px;">自由な航海日誌（特定の時間や食事など）</label>
+    <textarea id="notes" placeholder="例：15時BBB、ソアリンはDPA、ギョウザドッグ食べたい"></textarea>
     
-    <div style="margin-top: 24px;">
-      <button id="run" class="btn-primary">⛵ ルートを最適化する</button>
-    </div>
+    <button id="run" class="btn-primary">⛵ 航路を計算する</button>
   </div>
 
   <div class="card">
-    <label>Optimized Voyage Plan</label>
-    <div id="status" style="font-size: 11px; color: #888; margin-bottom: 8px; font-style: italic;">Ready to navigate...</div>
-    <pre id="out">航海ルートを計算するには上のボタンを押してください。</pre>
+    <label>Voyage Plan Result</label>
+    <pre id="out">ここにプランが表示されます</pre>
   </div>
 </div>
 
 <script>
-  // --- 定数と設定 ---
-  const MODEL_NAME = "gemini-2.5-flash"; // 2026年最新モデル
-  const PARK_ID = 275;
-  const QUEUE_URL = `https://queue-times.com/parks/${PARK_ID}/queue_times.json`;
+  const MODEL_NAME = "gemini-2.5-flash"; 
+  const QUEUE_URL = `https://queue-times.com/parks/275/queue_times.json`;
 
-  const keyEl = document.getElementById("key");
-  const startTimeEl = document.getElementById("startTime");
-  const rideSelectEl = document.getElementById("rideSelect");
-  const notesEl = document.getElementById("notes");
-  const outEl = document.getElementById("out");
-  const errEl = document.getElementById("error");
-  const statusEl = document.getElementById("status");
+  // ショーのマスターリスト（APIに載らないため手動定義）
+  const MASTER_SHOWS = [
+    { name: "ビリーヴ！〜シー・オブ・ドリームス〜", type: "show" },
+    { name: "ビッグバンドビート", type: "show" },
+    { name: "ジャンボリミッキー！", type: "show" },
+    { name: "ダッフィー＆フレンズのワンダフル・フレンドシップ", type: "show" }
+  ];
+
+  let allItems = [];
 
   // 初期化
-  startTimeEl.value = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-  keyEl.value = localStorage.getItem("navisea_key") || "";
-  document.getElementById("saveKey").onclick = () => {
-    localStorage.setItem("navisea_key", keyEl.value.trim());
-    alert("APIキーをこのブラウザに保存しました。");
+  window.onload = async () => {
+    document.getElementById("startTime").value = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    document.getElementById("key").value = localStorage.getItem("navisea_key") || "";
+    await loadData();
   };
 
-  let latestWaits = null;
-
-  // 待ち時間データ取得
-  async function fetchWaits() {
+  async function loadData() {
+    let rides = [];
     try {
       const res = await fetch(QUEUE_URL);
       const data = await res.json();
-      latestWaits = data.lands.flatMap(l => l.rides.map(r => ({ ...r, land: l.name })));
-      
-      rideSelectEl.innerHTML = "";
-      latestWaits.sort((a,b) => a.name.localeCompare(b.name, "ja")).forEach(r => {
-        const opt = document.createElement("option");
-        opt.value = r.name;
-        opt.textContent = `${r.name} (${r.is_open ? r.wait_time + '分' : '休止'})`;
-        if (!r.is_open) opt.style.color = "#ccc";
-        rideSelectEl.appendChild(opt);
-      });
-      document.getElementById("waitStatus").textContent = `更新済: ${new Date().toLocaleTimeString()}`;
+      rides = data.lands.flatMap(l => l.rides.map(r => ({ name: r.name, wait: r.wait_time, open: r.is_open, type: 'ride' })));
     } catch (e) {
-      showError("待ち時間データの取得に失敗しました。ネットワークを確認してください。");
+      console.warn("API取得失敗。予備データを使用します。");
+      // フォールバックデータ
+      rides = [{name: "ソアリン", wait: 120, open: true, type: 'ride'}, {name: "トイ・ストーリー・マニア！", wait: 100, open: true, type: 'ride'}, {name: "タワー・オブ・テラー", wait: 70, open: true, type: 'ride'}];
     }
-  }
-  document.getElementById("fetch").onclick = fetchWaits;
-
-  // エラー表示
-  function showError(msg) {
-    errEl.textContent = msg;
-    errEl.style.display = "block";
-    window.scrollTo(0, 0);
+    
+    allItems = [...MASTER_SHOWS, ...rides].sort((a,b) => a.name.localeCompare(b.name, "ja"));
+    renderSelection();
   }
 
-  // Gemini API 実行
+  function renderSelection() {
+    const area = document.getElementById("selectionArea");
+    area.innerHTML = "";
+    allItems.forEach((item, index) => {
+      const div = document.createElement("div");
+      div.className = "item-card";
+      div.innerHTML = `
+        <input type="checkbox" id="item-${index}" value="${item.name}">
+        <label for="item-${index}" style="margin:0; cursor:pointer;">
+          <span class="tag ${item.type === 'ride' ? 'tag-ride' : 'tag-show'}">${item.type === 'ride' ? 'ライド' : 'ショー'}</span>
+          ${item.name} ${item.wait !== undefined ? '('+item.wait+'分)' : ''}
+        </label>
+      `;
+      div.onclick = (e) => {
+        if(e.target.tagName !== 'INPUT') {
+          const cb = div.querySelector('input');
+          cb.checked = !cb.checked;
+          div.classList.toggle("selected", cb.checked);
+        }
+      };
+      area.appendChild(div);
+    });
+  }
+
   document.getElementById("run").onclick = async () => {
-    const apiKey = keyEl.value.trim();
-    if (!apiKey) { showError("Gemini API Keyが必要です。Google AI Studioで取得してください。"); return; }
-    if (!latestWaits) await fetchWaits();
+    const key = document.getElementById("key").value;
+    const selected = Array.from(document.querySelectorAll("#selectionArea input:checked")).map(i => i.value);
+    
+    if (!key) { alert("APIキーを入力してください"); return; }
+    localStorage.setItem("navisea_key", key);
 
-    errEl.style.display = "none";
-    outEl.textContent = "NaviSea が最適な航路を計算中...";
-    outEl.classList.add("loading");
-    statusEl.textContent = "AI is thinking...";
+    document.getElementById("out").textContent = "AIが計算中...";
 
-    const prompt = `
-あなたは東京ディズニーシー(TDS)の高度なプランニングAI「NaviSea」です。提供されたリアルタイム待ち時間を分析し、ユーザーにとって最高の1日を提案してください。
-
-【入力】
-- 現在時刻/開始時刻: ${startTimeEl.value}
-- プラン方針: ${document.getElementById("persona").value}
-- 必須体験: ${Array.from(rideSelectEl.selectedOptions).map(o => o.value).join(", ")}
-- 特記事項: ${notesEl.value}
-- 待ち時間データ: ${JSON.stringify(latestWaits.map(r => ({ name: r.name, wait: r.wait_time, open: r.is_open, land: r.land })))}
-
-【出力要件】
-1. 移動時間を考慮した現実的なタイムライン。
-2. 待ち時間が少なくなるような順序の組み換え。
-3. 2026年最新のTDS知識に基づいた「NaviSea's Tips」を3つ添える。
-4. 返答は以下の構造を持つJSON形式のみとすること。
-{
-  "voyage_plan": [{"time": "HH:mm", "activity": "内容", "details": "詳細・助言"}],
-  "highlights": "このプランの狙い",
-  "tips": ["Tips 1", "Tips 2", "Tips 3"]
-}`;
+    const prompt = `あなたはTDSプランナー。以下の条件で最高の1日を提案して。
+    【開始】${document.getElementById("startTime").value}
+    【方針】${document.getElementById("persona").value}
+    【希望】${selected.join(", ")}
+    【備考】${document.getElementById("notes").value}
+    【データ】${JSON.stringify(allItems.filter(i => i.type === 'ride'))}
+    JSON形式で {"voyage_plan": [{"time": "...", "activity": "..."}], "tips": ["..."]} と返して。`;
 
     try {
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${apiKey}`;
-      const response = await fetch(endpoint, {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${key}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { 
-            responseMimeType: "application/json",
-            temperature: 0.7 
-          }
-        })
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json" } })
       });
-
-      const resData = await response.json();
-      if (resData.error) throw new Error(resData.error.message);
-      
-      const plan = JSON.parse(resData.candidates[0].content.parts[0].text);
-      outEl.textContent = JSON.stringify(plan, null, 2);
-      outEl.classList.remove("loading");
-      statusEl.textContent = "Calculated by Gemini 2.5 Flash";
-      
+      const data = await res.json();
+      const text = data.candidates[0].content.parts[0].text;
+      document.getElementById("out").textContent = JSON.stringify(JSON.parse(text), null, 2);
     } catch (e) {
-      showError("AIとの通信エラー: " + e.message);
-      outEl.textContent = "航海ルートの計算に失敗しました。";
-      outEl.classList.remove("loading");
+      document.getElementById("out").textContent = "エラーが発生しました: " + e.message;
     }
   };
 </script>
