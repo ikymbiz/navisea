@@ -13,7 +13,7 @@
       --bg-white: #ffffff;
       --card-shadow: 0 4px 15px rgba(0,0,0,0.05);
     }
-    
+
     body { 
       font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif; 
       margin: 0; 
@@ -23,7 +23,6 @@
       line-height: 1.6;
     }
 
-    /* ヘッダーデザイン */
     .header { 
       background: var(--bg-white); 
       padding: 20px 10px; 
@@ -40,8 +39,7 @@
     .header p { margin: 5px 0 0; font-size: 10px; color: #aaa; }
 
     .container { max-width: 500px; margin: 0 auto; padding: 15px; }
-    
-    /* カードデザイン */
+
     .card { 
       background: rgba(255, 255, 255, 0.9); 
       border-radius: 20px; 
@@ -52,17 +50,16 @@
     }
 
     .section-title { font-size: 12px; font-weight: bold; margin-bottom: 10px; display: block; color: var(--accent-gold); text-transform: uppercase; letter-spacing: 1px; }
-    
+
     input, select, textarea { 
       width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 12px; 
       font-size: 14px; margin-bottom: 12px; box-sizing: border-box; background: #fff;
       color: var(--text-main);
     }
     input:focus { outline: none; border-color: var(--primary-pink); }
-    
+
     #updateStatus { font-size: 10px; color: #999; text-align: right; margin-bottom: 8px; margin-right: 5px; }
 
-    /* アトラクション選択エリア */
     .selection-container { 
       display: grid; 
       grid-template-columns: 1fr 1fr; 
@@ -93,8 +90,7 @@
       font-weight: bold; cursor: pointer; font-size: 15px; margin-top: 10px;
       box-shadow: 0 4px 15px rgba(212, 163, 115, 0.3);
     }
-    
-    /* 生成されたプランの表示 */
+
     .plan-line { border-left: 2px dashed var(--primary-pink); margin-left: 15px; padding-left: 20px; position: relative; margin-bottom: 15px; }
     .plan-line::before { 
       content: '⚓'; position: absolute; left: -10px; top: 0; 
@@ -103,14 +99,13 @@
     .p-time { font-weight: bold; color: var(--accent-gold); font-size: 14px; display: block; }
     .p-act { font-weight: bold; font-size: 14px; color: var(--text-main); }
     .p-det { font-size: 12px; color: #888; display: block; margin-top: 2px; font-style: italic; }
-    
+
     .tip-box { 
       background: #fdfaf5; border-radius: 15px; padding: 15px; margin-top: 15px;
       border: 1px dashed var(--accent-gold);
     }
     .tip-list { font-size: 12px; padding-left: 20px; margin: 0; color: #6e5a4e; }
 
-    /* デバッグパネル（隠し味） */
     .debug-panel { 
       background: #333; color: #0f0; font-family: monospace; font-size: 9px; 
       padding: 10px; border-radius: 10px; margin-top: 20px; max-height: 100px; overflow-y: auto;
@@ -129,7 +124,7 @@
   <div class="card">
     <span class="section-title">🗝 API Key</span>
     <input id="key" type="password" placeholder="Gemini API Keyを入力してね" />
-    
+
     <span class="section-title">📅 Plan Setting</span>
     <div style="display: flex; gap: 8px;">
       <input id="startTime" type="datetime-local" style="flex:1.5;" />
@@ -140,11 +135,11 @@
         <option value="chill">のんびり☕️</option>
       </select>
     </div>
-    
+
     <div id="updateStatus">情報を取得中...</div>
     <span class="section-title">🎀 Select Spots & Events</span>
     <div id="selectionArea" class="selection-container"></div>
-    
+
     <textarea id="notes" placeholder="「ランチは予約済み」「ダッフィーに会いたい」など自由にメモしてね" style="height: 60px; margin-top:12px;"></textarea>
     <button id="run" class="btn-primary">⛵ プランを作成する</button>
   </div>
@@ -162,25 +157,22 @@
 
 <script>
   const MODEL_NAME = "gemini-2.0-flash";
-  const PROXY_API = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://queue-times.com/parks/275/queue_times.json`)}`;
+  // 新しいAPIエンドポイント
+  const DATA_URL = "https://ikymbiz.github.io/disneyapi/data.json";
 
-  // キーワードマッチング用のマスタリスト
+  // APIのname_jaと完全一致させるためのマスタリスト
   let masterData = [
-    { name: "アナとエルサのフローズンジャーニー", key: "Frozen" },
-    { name: "ラプンツェルのランタンフェスティバル", key: "Rapunzel" },
-    { name: "ピーターパンのネバーランドアドベンチャー", key: "Peter Pan" },
-    { name: "フェアリー・ティンカーベルのビジーバギー", key: "Tinker Bell" },
     { name: "ソアリン：ファンタスティック・フライト", key: "Soaring" },
     { name: "トイ・ストーリー・マニア！", key: "Toy Story" },
     { name: "タワー・オブ・テラー", key: "Tower of Terror" },
     { name: "センター・オブ・ジ・アース", key: "Journey to the Center" },
-    { name: "インディ・ジョーンズ®・アドベンチャー", key: "Indiana Jones" },
+    { name: "インディ・ジョーンズ®・アドベンチャー：クリスタルスカルの魔宮", key: "Indiana Jones" },
     { name: "レイジングスピリッツ", key: "Raging Spirits" },
     { name: "ニモ＆フレンズ・シーライダー", key: "SeaRider" },
     { name: "海底2万マイル", key: "20,000 Leagues" },
     { name: "スカットルのスクーター", key: "Scuttle" },
     { name: "フランダーのフィッシュコースター", key: "Flounder" },
-    { name: "シンドバッド・ストーリーブック", key: "Sindbad" },
+    { name: "シンドバッド・ストーリーブック・ヴォヤッジ", key: "Sindbad" },
     { name: "タートル・トーク", key: "Turtle Talk" },
     { name: "ヴェネツィアン・ゴンドラ", key: "Gondolas" },
     { name: "アクアトピア", key: "Aquatopia" },
@@ -190,12 +182,11 @@
     { name: "ワールプール", key: "Whirlpool" },
     { name: "ジャンピン・ジェリーフィッシュ", key: "Jellyfish" },
     { name: "ブローフィッシュ・バルーンレース", key: "Blowfish" },
-    { name: "ビリーヴ！〜シー・オブ・ドリームス〜", key: "Believe" },
-    { name: "ビッグバンドビート(BBB)", key: "Big Band" },
-    { name: "ミッキー＆フレンズ・グリーティングトレイル", key: "Mickey" },
-    { name: "ヴィレッジ・グリーティングプレイス", key: "Duffy" },
-    { name: "サルードス・アミーゴス！", key: "Donald" }
-  ].map(i => ({ ...i, wait: "--" })).sort((a,b) => a.name.localeCompare(b.name, "ja"));
+    { name: "アナとエルサのフローズンジャーニー", key: "Frozen" },
+    { name: "ラプンツェルのランタンフェスティバル", key: "Rapunzel" },
+    { name: "ピーターパンのネバーランドアドベンチャー", key: "Peter Pan" },
+    { name: "フェアリー・ティンカーベルのビジーバギー", key: "Tinker Bell" }
+  ].map(i => ({ ...i, wait: "--", is_open: true })).sort((a,b) => a.name.localeCompare(b.name, "ja"));
 
   let selectedSet = new Set();
 
@@ -214,7 +205,13 @@
       const isSelected = selectedSet.has(item.name);
       const row = document.createElement("div");
       row.className = `item-row ${isSelected ? 'selected' : ''}`;
-      row.innerHTML = `<span class="item-name">${item.name}</span><span class="item-wait">${item.wait}${item.wait.includes("分")||item.wait==="休"||item.wait==="--"?"":"分"}</span>`;
+      
+      let waitDisplay = item.wait;
+      if (item.wait !== "--" && item.wait !== "休止") {
+          waitDisplay = item.wait + "分";
+      }
+
+      row.innerHTML = `<span class="item-name">${item.name}</span><span class="item-wait">${waitDisplay}</span>`;
       row.onclick = () => {
         if(selectedSet.has(item.name)) selectedSet.delete(item.name);
         else selectedSet.add(item.name);
@@ -228,45 +225,33 @@
     const status = document.getElementById("updateStatus");
     const debug = document.getElementById("debugContent");
     status.innerText = "⏳ 待ち時間を同期中...";
-    
+
     try {
-      const res = await fetch(PROXY_API);
-      const wrapper = await res.json();
-      
-      if (!wrapper || !wrapper.contents) {
-        debug.innerText = "Error: Proxy returned empty.";
-        return;
-      }
-      
-      const data = JSON.parse(wrapper.contents);
-      if (!data.lands) {
-        debug.innerText = "Error: Invalid API structure.";
+      // 修正：キャッシュ回避のためにクエリパラメータを追加
+      const res = await fetch(`${DATA_URL}?t=${new Date().getTime()}`);
+      const data = await res.json();
+
+      if (!data || !data.rides) {
+        debug.innerText = "Error: Invalid API response.";
         return;
       }
 
-      const liveRides = data.lands.flatMap(l => l.rides || []);
-      
-      if (liveRides.length === 0) {
-        debug.innerText = "API Success, but 0 rides found. Park closed?";
-        status.innerText = "⚠️ 施設情報なし";
-        return;
-      }
-
-      debug.innerHTML = `✅ API Success! (${liveRides.length}件)<br>`;
+      // TDSのアトラクションのみに絞り込む（NaviSeaのため）
+      const seaRides = data.rides.filter(r => r.park === "TDS");
+      debug.innerHTML = `✅ API Connected! (TDS:${seaRides.length}件)<br>`;
 
       masterData.forEach(item => {
-        const r = liveRides.find(l => {
-          const apiName = l.name.toLowerCase();
-          return apiName.includes(item.name.toLowerCase()) || 
-                 (item.key && apiName.includes(item.key.toLowerCase()));
-        });
-        
+        const r = seaRides.find(ride => 
+          ride.name_ja === item.name || ride.name_en.includes(item.key)
+        );
+
         if(r) {
           item.wait = r.is_open ? r.wait_time.toString() : "休止";
-          debug.innerHTML += `Match: ${item.name}<br>`;
+          item.is_open = r.is_open;
+          debug.innerHTML += `Match: ${item.name} (${item.wait})<br>`;
         }
       });
-      
+
       status.innerText = `✅ ${new Date().toLocaleTimeString()} 更新`;
       renderList();
     } catch(e) { 
@@ -279,16 +264,24 @@
     const key = document.getElementById("key").value;
     if(!key) return alert("API Keyを入れてね🔑");
     if(selectedSet.size === 0) return alert("行きたい場所をえらんでね🎀");
-    
+
     localStorage.setItem("navisea_key", key);
     const out = document.getElementById("out");
     document.getElementById("resultCard").style.display = "block";
     out.innerHTML = "<div style='text-align:center; padding:20px;'>⚓️ 最高の航海ルートを計算中...</div>";
 
-    const prompt = `あなたはディズニーが大好きな20代女性の案内人です。TDSの回り方を提案して。
-    【条件】${document.getElementById("startTime").value}開始 / ${Array.from(selectedSet).join(",")}希望 / メモ:${document.getElementById("notes").value}
-    【ルール】詳細は「〜してね」「〜がおすすめだよ」のように優しく可愛らしい敬語で15文字以内。
-    JSON形式のみ：{"voyage_plan":[{"time":"HH:mm","activity":"場所","details":"助言"}],"tips":["短いアドバイス1","アドバイス2"]}`;
+    // プロンプトに現在の待ち時間情報を付与
+    const selectedDetails = Array.from(selectedSet).map(name => {
+        const info = masterData.find(m => m.name === name);
+        return `${name}(待ち:${info ? info.wait : '不明'}分)`;
+    }).join(", ");
+
+    const prompt = `あなたはディズニーが大好きな20代女性の案内人です。東京ディズニーシーの効率的な回り方を提案して。
+    【現在の状況】開始:${document.getElementById("startTime").value} / 希望スポット:${selectedDetails} / 優先:${document.getElementById("persona").value} / メモ:${document.getElementById("notes").value}
+    【ルール】
+    1. 待ち時間を考慮して、移動がスムーズな順に組んで。
+    2. 詳細は「〜してね」「〜がおすすめだよ」のように優しく可愛らしい敬語で15文字以内。
+    3. JSON形式のみで出力：{"voyage_plan":[{"time":"HH:mm","activity":"場所","details":"助言"}],"tips":["短いアドバイス1","アドバイス2"]}`;
 
     try {
       const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${key}`, {
@@ -297,7 +290,7 @@
       });
       const d = await res.json();
       const plan = JSON.parse(d.candidates[0].content.parts[0].text);
-      
+
       let html = `<div style="margin-top:10px;">`;
       plan.voyage_plan.forEach(p => {
         html += `<div class="plan-line"><span class="p-time">${p.time}</span><span class="p-act">${p.activity}</span><span class="p-det">${p.details}</span></div>`;
@@ -307,6 +300,7 @@
       html += `</ul></div>`;
       out.innerHTML = html;
     } catch(e) { 
+      console.error(e);
       out.innerHTML = "ごめんなさい、うまく計算できなかったみたい。もう一度試してみてね！"; 
     }
   };
