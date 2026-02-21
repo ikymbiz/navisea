@@ -7,39 +7,47 @@
   <style>
     :root { 
       --navy: #001f3f; --aqua: #0074D9; --silver: #DDDDDD; --white: #FFFFFF;
-      --accent: #FF851B; --glass: rgba(255, 255, 255, 0.9);
+      --accent: #FF851B; --light-bg: #f8fbff;
     }
-    body { font-family: "Helvetica Neue", Arial, sans-serif; margin: 0; background-color: #eef2f7; color: var(--navy); }
-    .header { background: linear-gradient(135deg, var(--navy), var(--aqua)); color: white; padding: 30px 16px; text-align: center; }
-    .header h1 { margin: 0; font-size: 28px; letter-spacing: 2px; }
+    body { font-family: "Helvetica Neue", Arial, sans-serif; margin: 0; background-color: #f0f2f5; color: var(--navy); }
+    .header { background: linear-gradient(135deg, var(--navy), var(--aqua)); color: white; padding: 25px 16px; text-align: center; }
+    .header h1 { margin: 0; font-size: 26px; letter-spacing: 2px; }
     
     .container { max-width: 800px; margin: 0 auto; padding: 16px; }
-    .card { background: var(--glass); border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
     
-    label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 8px; color: var(--navy); }
-    input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; margin-bottom: 12px; }
+    label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 8px; color: var(--aqua); }
+    input, select, textarea { width: 100%; padding: 12px; border: 1.5px solid #eee; border-radius: 10px; box-sizing: border-box; font-size: 15px; margin-bottom: 12px; transition: 0.3s; }
+    input:focus { border-color: var(--aqua); outline: none; }
     
-    /* 選択エリアのスタイル */
-    .selection-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; max-height: 300px; overflow-y: auto; padding: 10px; border: 1px solid #ddd; border-radius: 8px; background: #fff; }
-    .item-card { display: flex; align-items: center; gap: 8px; padding: 8px; border: 1px solid #eee; border-radius: 6px; cursor: pointer; font-size: 13px; transition: 0.2s; }
-    .item-card:hover { background: #f0f7ff; }
-    .item-card input { width: auto; margin: 0; }
-    .item-card.selected { background: #e0f0ff; border-color: var(--aqua); }
+    /* 選択エリア：スクロール可能なリスト */
+    .selection-container { border: 1.5px solid #eee; border-radius: 12px; background: #fff; max-height: 400px; overflow-y: auto; margin-bottom: 16px; }
+    .item-row { display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: 0.2s; }
+    .item-row:last-child { border-bottom: none; }
+    .item-row:hover { background-color: #f0f7ff; }
+    .item-row.selected { background-color: #e6f3ff; border-left: 4px solid var(--aqua); }
+    
+    .item-info { flex-grow: 1; margin-left: 12px; }
+    .item-name { font-size: 14px; font-weight: bold; display: block; }
+    .item-wait { font-size: 12px; color: #666; }
+    .wait-badge { font-weight: bold; color: var(--accent); }
+    
+    .status-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; margin-bottom: 4px; color: white; }
+    .badge-ride { background: #0074D9; }
+    .badge-show { background: #FF851B; }
 
-    .btn-primary { background: var(--navy); color: white; width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: bold; font-size: 18px; cursor: pointer; }
-    .btn-primary:hover { background: var(--aqua); }
+    .btn-primary { background: var(--navy); color: white; width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: bold; font-size: 17px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,31,63,0.2); }
+    .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
     
-    #out { background: #001529; color: #a5d8ff; padding: 20px; border-radius: 12px; white-space: pre-wrap; font-family: monospace; font-size: 14px; }
-    .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; margin-right: 4px; vertical-align: middle; }
-    .tag-ride { background: #0074D9; color: white; }
-    .tag-show { background: #FF851B; color: white; }
+    #out { background: #001529; color: #a5d8ff; padding: 20px; border-radius: 12px; white-space: pre-wrap; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.5; overflow-x: auto; }
+    .loading-text { text-align: center; padding: 20px; color: #888; font-size: 14px; }
   </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>NaviSea</h1>
-  <p>TDS Smart Voyage Guide</p>
+  <h1>NaviSea 2026</h1>
+  <p>TDS Route Optimizer with Real-time Data</p>
 </div>
 
 <div class="container">
@@ -49,120 +57,162 @@
     <div style="display: flex; gap: 10px;">
       <input id="startTime" type="datetime-local" />
       <select id="persona">
-        <option value="balanced">効率重視</option>
-        <option value="thrill">絶叫コンプ</option>
+        <option value="balanced">バランス重視</option>
+        <option value="thrill">絶叫コンプリート</option>
         <option value="chill">のんびり散策</option>
       </select>
     </div>
   </div>
 
   <div class="card">
-    <label>体験したいアトラクション & ショー（複数選択可）</label>
-    <div id="selectionArea" class="selection-grid">
-      <div style="padding: 20px; color: #888;">データを読み込み中...</div>
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px;">
+      <label style="margin: 0;">行きたい場所を選択（APIから全取得）</label>
+      <button id="refreshBtn" style="font-size: 11px; cursor: pointer; background: none; border: 1px solid #ccc; border-radius: 4px; padding: 2px 8px;">🔄 データを更新</button>
     </div>
     
-    <label style="margin-top: 15px;">自由な航海日誌（特定の時間や食事など）</label>
-    <textarea id="notes" placeholder="例：15時BBB、ソアリンはDPA、ギョウザドッグ食べたい"></textarea>
+    <div id="selectionArea" class="selection-container">
+      <div class="loading-text">TDSの最新データを取得中...</div>
+    </div>
     
-    <button id="run" class="btn-primary">⛵ 航路を計算する</button>
+    <label>特記事項（ショーの時間やDPA使用など）</label>
+    <textarea id="notes" placeholder="例：ビリーヴはDPA、14:00にレストラン予約済み"></textarea>
+    
+    <button id="run" class="btn-primary">⛵ ルートを最適化する</button>
   </div>
 
   <div class="card">
-    <label>Voyage Plan Result</label>
-    <pre id="out">ここにプランが表示されます</pre>
+    <label>Generated Voyage Plan</label>
+    <pre id="out">ここに計算結果が表示されます。</pre>
   </div>
 </div>
 
 <script>
-  const MODEL_NAME = "gemini-2.5-flash"; 
-  const QUEUE_URL = `https://queue-times.com/parks/275/queue_times.json`;
+  // --- 設定 ---
+  const MODEL_NAME = "gemini-2.5-flash";
+  const PARK_ID = 275; // TDS
+  // CORS回避のためのプロキシ経由API URL
+  const QUEUE_URL = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://queue-times.com/parks/${PARK_ID}/queue_times.json`)}`;
 
-  // ショーのマスターリスト（APIに載らないため手動定義）
-  const MASTER_SHOWS = [
-    { name: "ビリーヴ！〜シー・オブ・ドリームス〜", type: "show" },
-    { name: "ビッグバンドビート", type: "show" },
-    { name: "ジャンボリミッキー！", type: "show" },
-    { name: "ダッフィー＆フレンズのワンダフル・フレンドシップ", type: "show" }
-  ];
+  const selectionArea = document.getElementById("selectionArea");
+  const outEl = document.getElementById("out");
 
-  let allItems = [];
+  let allData = []; // APIから取得した全データ
 
   // 初期化
   window.onload = async () => {
     document.getElementById("startTime").value = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-    document.getElementById("key").value = localStorage.getItem("navisea_key") || "";
-    await loadData();
+    const savedKey = localStorage.getItem("navisea_key");
+    if (savedKey) document.getElementById("key").value = savedKey;
+    fetchTDSData();
   };
 
-  async function loadData() {
-    let rides = [];
+  document.getElementById("refreshBtn").onclick = fetchTDSData;
+
+  // 1. APIからすべてのデータを取得する関数
+  async function fetchTDSData() {
+    selectionArea.innerHTML = '<div class="loading-text">データを読み込み中...</div>';
     try {
-      const res = await fetch(QUEUE_URL);
-      const data = await res.json();
-      rides = data.lands.flatMap(l => l.rides.map(r => ({ name: r.name, wait: r.wait_time, open: r.is_open, type: 'ride' })));
-    } catch (e) {
-      console.warn("API取得失敗。予備データを使用します。");
-      // フォールバックデータ
-      rides = [{name: "ソアリン", wait: 120, open: true, type: 'ride'}, {name: "トイ・ストーリー・マニア！", wait: 100, open: true, type: 'ride'}, {name: "タワー・オブ・テラー", wait: 70, open: true, type: 'ride'}];
+      const response = await fetch(QUEUE_URL);
+      const wrapper = await response.json();
+      const data = JSON.parse(wrapper.contents);
+      
+      // すべてのエリア（lands）からアトラクション・ショー（rides）を抽出
+      allData = data.lands.flatMap(land => 
+        land.rides.map(r => ({
+          name: r.name,
+          wait: r.wait_time,
+          isOpen: r.is_open,
+          land: land.name,
+          // 名前でショーかアトラクションか簡易判別
+          isShow: r.name.includes("ショー") || r.name.includes("シアター") || r.name.includes("ビリーヴ") || r.name.includes("グリーティング")
+        }))
+      ).sort((a, b) => a.name.localeCompare(b.name, "ja"));
+
+      renderList();
+    } catch (error) {
+      console.error(error);
+      selectionArea.innerHTML = '<div class="loading-text" style="color:red;">データの取得に失敗しました。更新ボタンを押してください。</div>';
     }
-    
-    allItems = [...MASTER_SHOWS, ...rides].sort((a,b) => a.name.localeCompare(b.name, "ja"));
-    renderSelection();
   }
 
-  function renderSelection() {
-    const area = document.getElementById("selectionArea");
-    area.innerHTML = "";
-    allItems.forEach((item, index) => {
-      const div = document.createElement("div");
-      div.className = "item-card";
-      div.innerHTML = `
-        <input type="checkbox" id="item-${index}" value="${item.name}">
-        <label for="item-${index}" style="margin:0; cursor:pointer;">
-          <span class="tag ${item.type === 'ride' ? 'tag-ride' : 'tag-show'}">${item.type === 'ride' ? 'ライド' : 'ショー'}</span>
-          ${item.name} ${item.wait !== undefined ? '('+item.wait+'分)' : ''}
-        </label>
+  // 2. リストを表示する関数
+  function renderList() {
+    selectionArea.innerHTML = "";
+    allData.forEach((item, index) => {
+      const row = document.createElement("div");
+      row.className = "item-row";
+      const statusClass = item.isShow ? "badge-show" : "badge-ride";
+      const statusText = item.isShow ? "SHOW/GREET" : "RIDE";
+      const waitText = item.isOpen ? `<span class="wait-badge">${item.wait}分</span>` : '<span style="color:#ccc;">休止中</span>';
+
+      row.innerHTML = `
+        <input type="checkbox" id="item-${index}" value="${item.name}" style="pointer-events:none;">
+        <div class="item-info">
+          <span class="status-badge ${statusClass}">${statusText}</span>
+          <span class="item-name">${item.name}</span>
+          <span class="item-wait">${item.land} | ${waitText}</span>
+        </div>
       `;
-      div.onclick = (e) => {
-        if(e.target.tagName !== 'INPUT') {
-          const cb = div.querySelector('input');
-          cb.checked = !cb.checked;
-          div.classList.toggle("selected", cb.checked);
-        }
+
+      // クリックでチェックボックスを切り替え
+      row.onclick = () => {
+        const cb = row.querySelector('input');
+        cb.checked = !cb.checked;
+        row.classList.toggle("selected", cb.checked);
       };
-      area.appendChild(div);
+      
+      selectionArea.appendChild(row);
     });
   }
 
+  // 3. Gemini API 実行
   document.getElementById("run").onclick = async () => {
-    const key = document.getElementById("key").value;
-    const selected = Array.from(document.querySelectorAll("#selectionArea input:checked")).map(i => i.value);
-    
-    if (!key) { alert("APIキーを入力してください"); return; }
+    const key = document.getElementById("key").value.trim();
+    if (!key) return alert("API Keyを入力してください。");
     localStorage.setItem("navisea_key", key);
 
-    document.getElementById("out").textContent = "AIが計算中...";
+    const selectedItems = Array.from(document.querySelectorAll("#selectionArea input:checked")).map(i => i.value);
+    if (selectedItems.length === 0) return alert("アトラクションを1つ以上選択してください。");
 
-    const prompt = `あなたはTDSプランナー。以下の条件で最高の1日を提案して。
-    【開始】${document.getElementById("startTime").value}
-    【方針】${document.getElementById("persona").value}
-    【希望】${selected.join(", ")}
-    【備考】${document.getElementById("notes").value}
-    【データ】${JSON.stringify(allItems.filter(i => i.type === 'ride'))}
-    JSON形式で {"voyage_plan": [{"time": "...", "activity": "..."}], "tips": ["..."]} と返して。`;
+    outEl.textContent = "NaviSeaが航海計画を練っています...";
+    
+    const prompt = `あなたは東京ディズニーシー(TDS)の達人プランナーです。
+以下の情報を基に、無駄のない最高の1日を提案してください。
+
+【基本情報】
+入園時刻: ${document.getElementById("startTime").value}
+プラン方針: ${document.getElementById("persona").value}
+【選択したアトラクション・ショー】
+${selectedItems.join(", ")}
+【特記事項・予定】
+${document.getElementById("notes").value}
+【全データ（待ち時間含む）】
+${JSON.stringify(allData.filter(d => d.isOpen))}
+
+【出力指示】
+- 移動時間を考慮した具体的なタイムラインを作成してください。
+- 混雑を避けるための順番の工夫を「Reason」として添えてください。
+- 返答は必ず純粋なJSON形式のみとし、マークダウンの\`\`\`jsonなどは含めないでください。
+{
+  "voyage_plan": [{"time": "HH:mm", "activity": "場所", "details": "理由・助言"}],
+  "highlights": "プランのポイント",
+  "tips": ["現地で役立つ豆知識"]
+}`;
 
     try {
       const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${key}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json" } })
+        body: JSON.stringify({ 
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { responseMimeType: "application/json" } 
+        })
       });
-      const data = await res.json();
-      const text = data.candidates[0].content.parts[0].text;
-      document.getElementById("out").textContent = JSON.stringify(JSON.parse(text), null, 2);
+      const resData = await res.json();
+      const plan = resData.candidates[0].content.parts[0].text;
+      outEl.textContent = JSON.stringify(JSON.parse(plan), null, 2);
     } catch (e) {
-      document.getElementById("out").textContent = "エラーが発生しました: " + e.message;
+      outEl.textContent = "AIとの通信に失敗しました。APIキーや通信環境を確認してください。\n" + e.message;
     }
   };
 </script>
